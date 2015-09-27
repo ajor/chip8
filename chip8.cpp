@@ -497,7 +497,7 @@ void Chip8::initDisplay()
   // 
   // Shaders
   //
-  const GLchar * const vertex_shader_source =
+  const GLchar *vertex_shader_source =
     "#version 330 core\n"
     "layout (location = 0) in vec2 position;"
     "layout (location = 1) in vec2 texCoord;"
@@ -508,7 +508,7 @@ void Chip8::initDisplay()
     "  TexCoord = texCoord;"
     "}";
 
-  const GLchar * const fragment_shader_source =
+  const GLchar *fragment_shader_source =
     "#version 330 core\n"
     "in vec2 TexCoord;"
     "out vec4 colour;"
