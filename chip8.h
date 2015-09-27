@@ -39,6 +39,8 @@ public:
   void loadProgram(std::istream& program);
   void run();
   void initDisplay();
+
+  unsigned int instructions_per_step = 10;
 };
 
 #endif

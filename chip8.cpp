@@ -53,7 +53,7 @@ void Chip8::step()
   std::chrono::duration<int, std::ratio<1, 60>> tick(1);
   std::this_thread::sleep_for(tick);
   update_timers();
-  for (int i=0; i<10; i++)
+  for (int i=0; i<instructions_per_step; i++)
   {
     //  printf("fetch: 0x%08X\n", reg.PC);
     uint16_t instruction = memory.get16(reg.PC);
