@@ -46,14 +46,12 @@ public:
 
   void set16(unsigned int address, uint16_t value)
   {
-    if (address >=0 && address < size)
+    if (address >=0 && address+1 < size)
     {
       uint8_t upper = (value & 0xff00) >> 8;
       uint8_t lower = (value & 0x00ff);
       mem8[address] = upper;
       mem8[address+1] = lower;
-//      unsigned int index = address / 2;
-//      mem16[index] = value;
     }
     else
     {
@@ -64,14 +62,12 @@ public:
 
   uint16_t get16(unsigned int address)
   {
-    if (address >=0 && address < size)
+    if (address >=0 && address+1 < size)
     {
       uint8_t upper = mem8[address];
       uint8_t lower = mem8[address+1];
       uint16_t value = (upper << 8) | lower;
       return value;
-//      unsigned int index = address / 2;
-//      return mem16[index];
     }
     fprintf(stderr, "get16 address = %u\n", address);
     abort();
