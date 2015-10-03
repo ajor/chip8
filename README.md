@@ -20,7 +20,7 @@ make
 
 or just run:
 ```
-g++ main.cpp chip8.cpp -std=c++11  -lglfw -lGLEW -lGL -lGLU -pthread -O3 -Wall -pedantic
+g++ main.cpp chip8.cpp font_loader.cpp -std=c++11 -lglfw -lGLEW -lGL -lGLU -pthread -O3 -Wall -pedantic
 ```
 
 ## Usage
