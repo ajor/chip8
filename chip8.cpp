@@ -1,9 +1,11 @@
 #include "chip8.h"
+#include "font_loader.h"
 
 #include <istream>
 #include <random>
 #include <chrono>
 #include <thread>
+#include <vector>
 #include <string.h>
 
 #define GLEW_STATIC
@@ -22,6 +24,7 @@ void Chip8::loadProgram(std::istream& program)
   memory.load(0x200, 0x1000-0x200, program);
 //  memory.print(0x200-1, 20);
 
+  // 5-bit (4x5 pixel) font
   uint8_t font[] = {0xf0, 0x90, 0x90, 0x90, 0xf0, // 0
                     0x20, 0x60, 0x20, 0x20, 0x70, // 1
                     0xf0, 0x10, 0xf0, 0x80, 0xf0, // 2
@@ -39,6 +42,10 @@ void Chip8::loadProgram(std::istream& program)
                     0xf0, 0x80, 0xf0, 0x80, 0xf0, // E
                     0xf0, 0x80, 0xf0, 0x80, 0x80};// F
   memory.load(0x100, 16*5, font);
+
+  // 10-bit (8*10) font
+  std::vector<uint8_t> font10 = load_font();
+  memory.load(0x150, 10*10, font10.data());
 }
 
 void Chip8::run()
@@ -55,43 +62,154 @@ void Chip8::step()
   update_timers();
   for (unsigned int i=0; i<instructions_per_step; i++)
   {
-    //  printf("fetch: 0x%08X\n", reg.PC);
+    //printf("fetch: 0x%08X\n", reg.PC);
     uint16_t instruction = memory.get16(reg.PC);
     reg.PC += 2;
+    //printf("execute: %04X\n", instruction);
     execute(instruction);
+    //print_registers();
+    //print_screen();
+    //getchar();
   }
-  //  print_registers();
-  //  print_screen();
 }
 
 void Chip8::execute(uint16_t instruction)
 {
-//  printf("execute: %04X\n", instruction);
+  // Not the most efficient implementation - switch statements aren't
+  // converted to jump tables... but it's easily fast enough for
+  // Chip-8
   uint16_t bit1 = instruction & 0xf000;
   switch (bit1)
   {
     case 0x0000:
       {
-        switch (instruction & 0x00ff)
+        if ((instruction & 0x00f0) == 0x00c0)
         {
-          case 0x00e0:
-            {
-              // 00E0 - CLS
-              // Clear the display
-              memset(display, 0, sizeof(display));
-              break;
-            }
-          case 0x00ee:
-            {
-              // 00EE - RET
-              // Return from a subroutine
-              reg.PC = memory.get16(reg.SP);
-              reg.SP -= 2;
-              break;
-            }
-          default:
-            printf("Unknown instruction: %04X\n", instruction);
-            abort();
+          // SUPER-CHIP
+          // 00CN - SCD nibble
+          // Scroll display N lines down
+          printf("1\n");
+          unsigned int n = (instruction & 0x000f);
+          unsigned int nr, w, h;
+          uint8_t *disp;
+          if (extendedMode)
+          {
+            w = extWidth;
+            h = extHeight;
+            disp = &extDisplay[0][0];
+          }
+          else
+          {
+            w = width;
+            h = height;
+            disp = &display[0][0];
+          }
+          nr = n*w;
+          memmove(disp + nr, disp, w*h - nr);
+          memset(disp, 0, nr);
+        }
+        else
+        {
+          switch (instruction & 0x00ff)
+          {
+            case 0x00e0:
+              {
+                // 00E0 - CLS
+                // Clear the display
+                memset(display, 0, sizeof(display));
+                break;
+              }
+            case 0x00ee:
+              {
+                // 00EE - RET
+                // Return from a subroutine
+                reg.PC = memory.get16(reg.SP);
+                reg.SP -= 2;
+                break;
+              }
+            case 0x00fb:
+              {
+                // SUPER-CHIP
+                // 00FB - SCR
+                // Scroll display 4 pixels right
+                unsigned int w, h;
+                uint8_t *disp;
+                if (extendedMode)
+                {
+                  w = extWidth;
+                  h = extHeight;
+                  disp = &extDisplay[0][0];
+                }
+                else
+                {
+                  w = width;
+                  h = height;
+                  disp = &display[0][0];
+                }
+                for (unsigned int i=0; i<h; i++)
+                {
+                  memmove(disp+4, disp, w-4);
+                  memset(disp, 0, 4);
+                  disp += w; // Next row
+                }
+                break;
+              }
+            case 0x00fc:
+              {
+                // SUPER-CHIP
+                // 00FC - SCL
+                // Scroll display 4 pixels left
+                unsigned int w, h;
+                uint8_t *disp;
+                if (extendedMode)
+                {
+                  w = extWidth;
+                  h = extHeight;
+                  disp = &extDisplay[0][0];
+                }
+                else
+                {
+                  w = width;
+                  h = height;
+                  disp = &display[0][0];
+                }
+                for (unsigned int i=0; i<h; i++)
+                {
+                  memmove(disp, disp+4, w-4);
+                  memset(disp+w-4, 0, 4);
+                  disp += w; // Next row
+                }
+                break;
+              }
+            case 0x00fd:
+              {
+                // SUPER-CHIP
+                // 00FE - EXIT
+                // Exit interpreter
+                printf("Exiting...\n");
+                abort(); // TODO nicer exit
+                break;
+              }
+            case 0x00fe:
+              {
+                // SUPER-CHIP
+                // 00FE - LOW
+                // Disable extended screen mode
+                extendedMode = false;
+                break;
+              }
+            case 0x00ff:
+              {
+                // SUPER-CHIP
+                // 00FF - HIGH
+                // Enable extended screen mode for full-screen graphics
+                extendedMode = true;
+                break;
+              }
+            default:
+              printf("Unknown instruction: %04X\n", instruction);
+              abort();
+          }
         }
         break;
       }
@@ -258,25 +376,79 @@ void Chip8::execute(uint16_t instruction)
       {
         // Dxyn - DRW Vx, Vy, nibble
         // Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision
+        // SUPER-CHIP If N=0 and extended mode, show 16x16 sprite.
         unsigned int x = (instruction & 0x0f00)>>8;
         unsigned int y = (instruction & 0x00f0)>>4;
         unsigned int n = (instruction & 0x000f);
         reg.V[0xf] = 0;
-        for (unsigned int row=0; row<n; row++)
+        if (extendedMode)
         {
-          uint8_t sprite_row = memory.get8(reg.I + row);
-          for (unsigned int col=0; col<8; col++)
+          if (n == 0)
           {
-            if (sprite_row & (0x80 >> col))
+            // Draw a 16x16 sprite
+            for (unsigned int row=0; row<16; row++)
             {
-              if (display[(reg.V[y]+row)%32][(reg.V[x]+col)%64])
+              uint16_t sprite_row = memory.get16(reg.I + row*2);
+              for (unsigned int col=0; col<16; col++)
               {
-                reg.V[0xf] = 1;
-                display[(reg.V[y]+row)%32][(reg.V[x]+col)%64] = 0;
+                if (sprite_row & (0x80 >> col))
+                {
+                  if (extDisplay[(reg.V[y]+row)%extHeight][(reg.V[x]+col)%extWidth])
+                  {
+                    reg.V[0xf] = 1;
+                    extDisplay[(reg.V[y]+row)%extHeight][(reg.V[x]+col)%extWidth] = 0;
+                  }
+                  else
+                  {
+                    extDisplay[(reg.V[y]+row)%extHeight][(reg.V[x]+col)%extWidth] = 0xff;
+                  }
+                }
               }
-              else
+            }
+          }
+          else
+          {
+            // Draw an n-byte sprite in extended mode
+            for (unsigned int row=0; row<n; row++)
+            {
+              uint8_t sprite_row = memory.get8(reg.I + row);
+              for (unsigned int col=0; col<8; col++)
               {
-                display[(reg.V[y]+row)%32][(reg.V[x]+col)%64] = 0xff;
+                if (sprite_row & (0x80 >> col))
+                {
+                  if (extDisplay[(reg.V[y]+row)%extHeight][(reg.V[x]+col)%extWidth])
+                  {
+                    reg.V[0xf] = 1;
+                    extDisplay[(reg.V[y]+row)%extHeight][(reg.V[x]+col)%extWidth] = 0;
+                  }
+                  else
+                  {
+                    extDisplay[(reg.V[y]+row)%extHeight][(reg.V[x]+col)%extWidth] = 0xff;
+                  }
+                }
+              }
+          }
+          }
+        }
+        else
+        {
+          // Draw an n-byte sprite in normal mode
+          for (unsigned int row=0; row<n; row++)
+          {
+            uint8_t sprite_row = memory.get8(reg.I + row);
+            for (unsigned int col=0; col<8; col++)
+            {
+              if (sprite_row & (0x80 >> col))
+              {
+                if (display[(reg.V[y]+row)%height][(reg.V[x]+col)%width])
+                {
+                  reg.V[0xf] = 1;
+                  display[(reg.V[y]+row)%height][(reg.V[x]+col)%width] = 0;
+                }
+                else
+                {
+                  display[(reg.V[y]+row)%height][(reg.V[x]+col)%width] = 0xff;
+                }
               }
             }
           }
@@ -367,8 +539,16 @@ void Chip8::execute(uint16_t instruction)
           case 0x0029:
             {
               // Fx29 - LD F, Vx
-              // Set I = location of sprite for digit Vx
+              // Point I to 5-byte font sprite for hex character VX
               reg.I = 0x100 + reg.V[x]*5; // 0x100 is address of '0' digit
+              break;
+            }
+          case 0x0030:
+            {
+              // SUPER-CHIP
+              // Fx30 - LD HF, Vx
+              // Point I to 10-byte font sprite for digit VX (0..9)
+              reg.I = 0x150 + reg.V[x]*10; // 0x150 is address of '0' digit
               break;
             }
           case 0x0033:
@@ -404,6 +584,22 @@ void Chip8::execute(uint16_t instruction)
               }
               break;
             }
+//          case 0x0075:
+//            {
+//              // SUPER-CHIP
+//              // Fx75 - LD R, Vx
+//              // Store V0..VX in RPL user flags (X <= 7)
+//              // TODO what does this mean??
+//              break;
+//            }
+//          case 0x0085:
+//            {
+//              // SUPER-CHIP
+//              // Fx85 - LD Vx, R
+//              // Read V0..VX from RPL user flags (X <= 7)
+//              // TODO what does this mean??
+//              break;
+//            }
           default:
             printf("Unknown instruction: %04X\n", instruction);
             abort();
@@ -437,20 +633,48 @@ void Chip8::print_registers()
 
 void Chip8::print_screen()
 {
-  printf("/----------------------------------------------------------------\\\n");
-  for (int y=0; y<32; y++)
+  unsigned int w, h;
+  uint8_t *disp;
+  if (extendedMode)
+  {
+    w = extWidth;
+    h = extHeight;
+    disp = &extDisplay[0][0];
+  }
+  else
+  {
+    w = width;
+    h = height;
+    disp = &display[0][0];
+  }
+  if (extendedMode)
+  {
+    printf("/--------------------------------------------------------------------------------------------------------------------------------\\\n");
+  }
+  else
+  {
+    printf("/----------------------------------------------------------------\\\n");
+  }
+  for (unsigned int y=0; y<h; y++)
   {
     printf("|");
-    for (int x=0; x<64; x++)
+    for (unsigned int x=0; x<w; x++)
     {
-      if (display[y][x])
+      if (*(disp+y*w+x))
         printf("0");
       else
         printf(" ");
     }
     printf("|\n");
   }
-  printf("\\----------------------------------------------------------------/\n");
+  if (extendedMode)
+  {
+    printf("\\--------------------------------------------------------------------------------------------------------------------------------/\n");
+  }
+  else
+  {
+    printf("\\----------------------------------------------------------------/\n");
+  }
 }
 
 void Chip8::initDisplay()
@@ -458,8 +682,8 @@ void Chip8::initDisplay()
   //
   // Set up window
   //
-  unsigned int width  = 64 * 30;
-  unsigned int height = 32 * 30;
+  unsigned int screenWidth  = width * scaleFactor;
+  unsigned int screenHeight = height * scaleFactor;
   if (!glfwInit()) {
     fprintf(stderr, "Failed to initialise GLFW\n");
     abort();
@@ -471,7 +695,7 @@ void Chip8::initDisplay()
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-  window = glfwCreateWindow(width, height, "Chip8 Emulator", NULL, NULL);
+  window = glfwCreateWindow(screenWidth, screenHeight, "Chip8 Emulator", NULL, NULL);
   if (window == NULL) {
     fprintf(stderr, "Failed to open window.\n");
     glfwTerminate();
@@ -492,9 +716,9 @@ void Chip8::initDisplay()
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluOrtho2D(0, width, height, 0);
+  gluOrtho2D(0, screenWidth, screenHeight, 0);
 
-  // 
+  //
   // Shaders
   //
   const GLchar *vertex_shader_source =
@@ -601,8 +825,22 @@ void Chip8::initDisplay()
   //  glfwSwapInterval(2);
   while (!glfwWindowShouldClose(window))
   {
+    unsigned int w, h;
+    uint8_t *disp;
+    if (extendedMode)
+    {
+      w = extWidth;
+      h = extHeight;
+      disp = &extDisplay[0][0];
+    }
+    else
+    {
+      w = width;
+      h = height;
+      disp = &display[0][0];
+    }
     glClear(GL_COLOR_BUFFER_BIT);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 64, 32, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, display);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, disp);
     glUniform1i(glGetUniformLocation(shader_program, "display"), 0);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glfwSwapBuffers(window);

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(Chip8)
-add_executable(chip8 main.cpp chip8.cpp)
+add_executable(chip8 main.cpp chip8.cpp font_loader.cpp)
 
 target_compile_options(chip8 PRIVATE "-std=c++11")
 target_compile_options(chip8 PRIVATE "-Wall")

@@ -19,17 +19,25 @@ class Chip8
     uint8_t SP = 0;
   } reg;
 
-  uint8_t display[32][64];
-
   Memory<0x1000> memory; // 4KB
+
+  static const unsigned int width = 64;
+  static const unsigned int height = 32;
+  static const unsigned int scaleFactor = 30;
+  static const unsigned int extWidth = width*2;
+  static const unsigned int extHeight = height*2;
+  uint8_t display[height][width];
+  uint8_t extDisplay[extHeight][extWidth];
+
+  bool extendedMode = false;
+
+  std::mt19937 rng;
 
   void step();
   void execute(uint16_t instruction);
   void update_timers();
   void print_registers();
   void print_screen();
-
-  std::mt19937 rng;
 
 public:
   Chip8() {
