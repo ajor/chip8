@@ -28,4 +28,6 @@ int main(int argc, char* argv[])
   chip8.loadProgram(program);
   std::thread exec(run);
   chip8.initDisplay();
+
+  return 0;
 }

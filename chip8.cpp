@@ -88,7 +88,6 @@ void Chip8::execute(uint16_t instruction)
           // SUPER-CHIP
           // 00CN - SCD nibble
           // Scroll display N lines down
-          printf("1\n");
           unsigned int n = (instruction & 0x000f);
           unsigned int nr, w, h;
           uint8_t *disp;
@@ -116,7 +115,14 @@ void Chip8::execute(uint16_t instruction)
               {
                 // 00E0 - CLS
                 // Clear the display
-                memset(display, 0, sizeof(display));
+                if (extendedMode)
+                {
+                  memset(extDisplay, 0, sizeof(extDisplay));
+                }
+                else
+                {
+                  memset(display, 0, sizeof(display));
+                }
                 break;
               }
             case 0x00ee:

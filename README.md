@@ -29,7 +29,7 @@ g++ main.cpp chip8.cpp font_loader.cpp -std=c++11 -lglfw -lGLEW -lGL -lGLU -pthr
 
 You can adjust the speed of the emulator by changing `instructions_per_step` (defaults to 10). This parameter represents the number of Chip-8 instructions executed for each tick of the timers (which run at 60Hz).
 
-10 (or a little higher) works well for most games tested, but Connect4 needs `instructions_per_step=1` to be playable.
+10 (or a little higher) works well for most Chip-8 games tested, but Connect4 needs `instructions_per_step=1` to be playable. Super-Chip games generally need to be run a bit faster - somewhere in the 20-60 range seems to work well.
 
 ### Keyboard map
     Chip-8:    QWERTY keyboard:
@@ -38,6 +38,11 @@ You can adjust the speed of the emulator by changing `instructions_per_step` (de
     4 5 6 D        Q W E R
     7 8 9 E        A S D F
     A 0 B F        Z X C V
+
+## Compatibility
+
+- All Chip-8 games tested appear to work correctly
+- Most S-Chip games work, although the instructions Fx75 and Fx85 haven't been implemented so a few will not run
 
 ## TODO
 - Add sound
