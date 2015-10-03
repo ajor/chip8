@@ -16,8 +16,8 @@ void usage()
 {
   printf("Usage: %s [options] rom\n", name);
   printf("Options:\n");
-  printf("\t-i\tInstructions per step (default: 10)\n");
-  printf("\t-s\tScreen scale factor (default: 20)\n");
+  printf("  -i  Instructions per step (default: 10)\n");
+  printf("  -s  Screen scale factor (default: 20)\n");
 }
 
 int main(int argc, char* argv[])
@@ -50,7 +50,14 @@ int main(int argc, char* argv[])
     abort();
   }
 
-  std::ifstream program(argv[optind]);
+  char *rom = argv[optind];
+  std::ifstream program(rom);
+
+  if (!program.is_open())
+  {
+    fprintf(stderr, "Couldn't load ROM from '%s'\n", rom);
+    abort();
+  }
 
   printf("Running at %d instructions per step\n", chip8.instructions_per_step);
 

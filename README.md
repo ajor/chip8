@@ -25,7 +25,10 @@ g++ main.cpp chip8.cpp font_loader.cpp -std=c++11 -lglfw -lGLEW -lGL -lGLU -pthr
 
 ## Usage
 
-    ./chip8 program-file [instructions_per_step]
+    ./chip8 [options] rom
+    Options:
+      -i  Instructions per step (default: 10)
+      -s  Screen scale factor (default: 20)
 
 You can adjust the speed of the emulator by changing `instructions_per_step` (defaults to 10). This parameter represents the number of Chip-8 instructions executed for each tick of the timers (which run at 60Hz).
 
