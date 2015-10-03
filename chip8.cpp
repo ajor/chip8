@@ -16,7 +16,6 @@ std::uniform_int_distribution<std::mt19937::result_type> rand_byte(0, 0xff);
 GLFWwindow *window;
 GLuint shader_program;
 
-bool keys[16];
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
 void Chip8::loadProgram(std::istream& program)
@@ -50,9 +49,15 @@ void Chip8::loadProgram(std::istream& program)
 
 void Chip8::run()
 {
-  while (1) {
+  while (running) {
     step();
   }
+}
+
+void Chip8::reset()
+{
+  reg.PC = 0x200;
+  // TODO reload program into memory too?
 }
 
 void Chip8::step()
@@ -708,6 +713,7 @@ void Chip8::initDisplay()
     abort();
   }
   glfwMakeContextCurrent(window);
+  glfwSetWindowUserPointer(window, this);
   glfwSetKeyCallback(window, key_callback);
 
   glewExperimental = true;
@@ -856,24 +862,28 @@ void Chip8::initDisplay()
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
+  Chip8 *chip8 = (Chip8 *)glfwGetWindowUserPointer(window);
   bool pressed = (action != GLFW_RELEASE);
   switch (key)
   {
-    case GLFW_KEY_1: keys[0x1] = pressed; break;
-    case GLFW_KEY_2: keys[0x2] = pressed; break;
-    case GLFW_KEY_3: keys[0x3] = pressed; break;
-    case GLFW_KEY_4: keys[0xc] = pressed; break;
-    case GLFW_KEY_Q: keys[0x4] = pressed; break;
-    case GLFW_KEY_W: keys[0x5] = pressed; break;
-    case GLFW_KEY_E: keys[0x6] = pressed; break;
-    case GLFW_KEY_R: keys[0xd] = pressed; break;
-    case GLFW_KEY_A: keys[0x7] = pressed; break;
-    case GLFW_KEY_S: keys[0x8] = pressed; break;
-    case GLFW_KEY_D: keys[0x9] = pressed; break;
-    case GLFW_KEY_F: keys[0xe] = pressed; break;
-    case GLFW_KEY_Z: keys[0xa] = pressed; break;
-    case GLFW_KEY_X: keys[0x0] = pressed; break;
-    case GLFW_KEY_C: keys[0xb] = pressed; break;
-    case GLFW_KEY_V: keys[0xf] = pressed; break;
+    case GLFW_KEY_1: chip8->keys[0x1] = pressed; break;
+    case GLFW_KEY_2: chip8->keys[0x2] = pressed; break;
+    case GLFW_KEY_3: chip8->keys[0x3] = pressed; break;
+    case GLFW_KEY_4: chip8->keys[0xc] = pressed; break;
+    case GLFW_KEY_Q: chip8->keys[0x4] = pressed; break;
+    case GLFW_KEY_W: chip8->keys[0x5] = pressed; break;
+    case GLFW_KEY_E: chip8->keys[0x6] = pressed; break;
+    case GLFW_KEY_R: chip8->keys[0xd] = pressed; break;
+    case GLFW_KEY_A: chip8->keys[0x7] = pressed; break;
+    case GLFW_KEY_S: chip8->keys[0x8] = pressed; break;
+    case GLFW_KEY_D: chip8->keys[0x9] = pressed; break;
+    case GLFW_KEY_F: chip8->keys[0xe] = pressed; break;
+    case GLFW_KEY_Z: chip8->keys[0xa] = pressed; break;
+    case GLFW_KEY_X: chip8->keys[0x0] = pressed; break;
+    case GLFW_KEY_C: chip8->keys[0xb] = pressed; break;
+    case GLFW_KEY_V: chip8->keys[0xf] = pressed; break;
+    case GLFW_KEY_ENTER:
+      chip8->reset();
+      break;
   }
 }

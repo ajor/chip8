@@ -42,6 +42,8 @@ You can adjust the speed of the emulator by changing `instructions_per_step` (de
     7 8 9 E        A S D F
     A 0 B F        Z X C V
 
+Pressing Enter resets the emulator.
+
 ## Compatibility
 
 - All Chip-8 games tested appear to work correctly

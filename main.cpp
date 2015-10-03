@@ -65,5 +65,8 @@ int main(int argc, char* argv[])
   std::thread exec(run);
   chip8.initDisplay();
 
+  chip8.running = false;
+  exec.join();
+
   return 0;
 }

@@ -45,10 +45,13 @@ public:
   }
   void loadProgram(std::istream& program);
   void run();
+  void reset();
   void initDisplay();
 
   unsigned int instructions_per_step = 10;
   unsigned int scaleFactor = 20;
+  bool running = true;
+  bool keys[16];
 };
 
 #endif
