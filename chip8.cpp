@@ -391,7 +391,7 @@ void Chip8::execute(uint16_t instruction)
               uint16_t sprite_row = memory.get16(reg.I + row*2);
               for (unsigned int col=0; col<16; col++)
               {
-                if (sprite_row & (0x80 >> col))
+                if (sprite_row & (0x8000 >> col))
                 {
                   if (extDisplay[(reg.V[y]+row)%extHeight][(reg.V[x]+col)%extWidth])
                   {
