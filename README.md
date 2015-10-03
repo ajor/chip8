@@ -46,6 +46,5 @@ You can adjust the speed of the emulator by changing `instructions_per_step` (de
 
 ## TODO
 - Add sound
-- Add more configuration options, e.g. screen size, colours
 - Stop using abort() everywhere
 - Fix threading

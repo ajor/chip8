@@ -23,7 +23,6 @@ class Chip8
 
   static const unsigned int width = 64;
   static const unsigned int height = 32;
-  static const unsigned int scaleFactor = 30;
   static const unsigned int extWidth = width*2;
   static const unsigned int extHeight = height*2;
   uint8_t display[height][width];
@@ -49,6 +48,7 @@ public:
   void initDisplay();
 
   unsigned int instructions_per_step = 10;
+  unsigned int scaleFactor = 20;
 };
 
 #endif
