@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <unistd.h>
-#include <fstream>
 #include <thread>
 #include "chip8.h"
 
@@ -51,17 +50,9 @@ int main(int argc, char* argv[])
   }
 
   char *rom = argv[optind];
-  std::ifstream program(rom);
-
-  if (!program.is_open())
-  {
-    fprintf(stderr, "Couldn't load ROM from '%s'\n", rom);
-    abort();
-  }
+  chip8.loadProgram(rom);
 
   printf("Running at %d instructions per step\n", chip8.instructions_per_step);
-
-  chip8.loadProgram(program);
   std::thread exec(run);
   chip8.initDisplay();
 

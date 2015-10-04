@@ -2,6 +2,7 @@
 #include "font_loader.h"
 
 #include <istream>
+#include <fstream>
 #include <random>
 #include <chrono>
 #include <thread>
@@ -18,10 +19,17 @@ GLuint shader_program;
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
-void Chip8::loadProgram(std::istream& program)
+void Chip8::loadProgram(char *rom)
 {
+  rom_file_name = rom;
+  std::ifstream program(rom);
+  if (!program.is_open())
+  {
+    fprintf(stderr, "Couldn't load ROM from '%s'\n", rom);
+    abort();
+  }
+
   memory.load(0x200, 0x1000-0x200, program);
-//  memory.print(0x200-1, 20);
 
   // 5-bit (4x5 pixel) font
   uint8_t font[] = {0xf0, 0x90, 0x90, 0x90, 0xf0, // 0
@@ -57,7 +65,10 @@ void Chip8::run()
 void Chip8::reset()
 {
   reg.PC = 0x200;
-  // TODO reload program into memory too?
+  reg.SP = 0;
+  memset(display, 0, width*height);
+  memset(extDisplay, 0, extWidth*extHeight);
+  loadProgram(rom_file_name);
 }
 
 void Chip8::step()

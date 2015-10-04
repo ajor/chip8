@@ -29,7 +29,7 @@ class Chip8
   uint8_t extDisplay[extHeight][extWidth];
 
   bool extendedMode = false;
-
+  char *rom_file_name;
   std::mt19937 rng;
 
   void step();
@@ -43,7 +43,7 @@ public:
     // TODO is this needed here?
     rng.seed(std::random_device()());
   }
-  void loadProgram(std::istream& program);
+  void loadProgram(char *rom);
   void run();
   void reset();
   void initDisplay();
