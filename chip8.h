@@ -17,6 +17,7 @@ class Chip8
     uint8_t V[16];
     uint8_t timerD, timerS;
     uint8_t SP = 0;
+    uint8_t hp_48_flags[8];
   } reg;
 
   Memory<0x1000> memory; // 4KB

@@ -46,8 +46,7 @@ Pressing Enter resets the emulator.
 
 ## Compatibility
 
-- All Chip-8 games tested appear to work correctly
-- Most S-Chip games work, although the instructions Fx75 and Fx85 haven't been implemented so a few will not run
+- All Chip-8 and Super-Chip games tested appear to work correctly
 
 ## TODO
 - Add sound

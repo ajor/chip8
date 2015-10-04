@@ -606,22 +606,30 @@ void Chip8::execute(uint16_t instruction)
               }
               break;
             }
-//          case 0x0075:
-//            {
-//              // SUPER-CHIP
-//              // Fx75 - LD R, Vx
-//              // Store V0..VX in RPL user flags (X <= 7)
-//              // TODO what does this mean??
-//              break;
-//            }
-//          case 0x0085:
-//            {
-//              // SUPER-CHIP
-//              // Fx85 - LD Vx, R
-//              // Read V0..VX from RPL user flags (X <= 7)
-//              // TODO what does this mean??
-//              break;
-//            }
+          case 0x0075:
+            {
+              // SUPER-CHIP
+              // Fx75 - LD R, Vx
+              // Store V0..VX in RPL user flags (X <= 7)
+              x = x & 7;
+              for (unsigned int i=0; i<x; i++)
+              {
+                reg.hp_48_flags[i] = reg.V[i];
+              }
+              break;
+            }
+          case 0x0085:
+            {
+              // SUPER-CHIP
+              // Fx85 - LD Vx, R
+              // Read V0..VX from RPL user flags (X <= 7)
+              x = x & 7;
+              for (unsigned int i=0; i<x; i++)
+              {
+                reg.V[i] = reg.hp_48_flags[i];
+              }
+              break;
+            }
           default:
             printf("Unknown instruction: %04X\n", instruction);
             abort();
