@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(Chip8)
-add_executable(chip8 main.cpp chip8.cpp font_loader.cpp)
+add_executable(chip8 main.cpp chip8.cpp font_loader.cpp audio.cpp)
 
 target_compile_options(chip8 PRIVATE "-std=c++11")
 target_compile_options(chip8 PRIVATE "-Wall")
@@ -27,4 +27,11 @@ if (GLFW_FOUND)
   target_link_libraries(chip8 ${GLFW_LIBRARIES})
 endif()
 
+find_package(OpenAL REQUIRED)
+if (OPENAL_FOUND)
+  include_directories(${OPENAL_INCLUDE_DIR})
+  target_link_libraries(chip8 ${OPENAL_LIBRARY})
+endif()
+
 target_link_libraries(chip8 pthread)
+target_link_libraries(chip8 m)

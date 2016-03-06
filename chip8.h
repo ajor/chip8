@@ -7,6 +7,7 @@
 #include <chrono>
 
 #include "memory.h"
+#include "audio.h"
 
 class Chip8
 {
@@ -21,6 +22,7 @@ class Chip8
   } reg;
 
   Memory<0x1000> memory; // 4KB
+  Audio audio;
 
   static const unsigned int width = 64;
   static const unsigned int height = 32;
