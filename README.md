@@ -49,6 +49,5 @@ Pressing Enter resets the emulator.
 - All Chip-8 and Super-Chip games tested appear to work correctly
 
 ## TODO
-- Add sound
 - Stop using abort() everywhere
 - Fix threading

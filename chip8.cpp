@@ -647,20 +647,23 @@ void Chip8::update_timers()
   if (reg.timerD > 0)
     --reg.timerD;
 
-  static bool playing = false;
-  if (reg.timerS > 0)
+  if (!muted)
   {
-    --reg.timerS;
-    if (!playing)
+    static bool playing = false;
+    if (reg.timerS > 0)
     {
-      audio.play();
-      playing = true;
+      --reg.timerS;
+      if (!playing)
+      {
+        audio.play();
+        playing = true;
+      }
     }
-  }
-  else
-  {
-    audio.stop();
-    playing = false;
+    else
+    {
+      audio.stop();
+      playing = false;
+    }
   }
 }
 

@@ -55,6 +55,7 @@ public:
   unsigned int scaleFactor = 20;
   bool running = true;
   bool keys[16];
+  bool muted = false;
 };
 
 #endif

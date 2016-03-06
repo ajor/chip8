@@ -17,6 +17,7 @@ void usage()
   printf("Options:\n");
   printf("  -i  Instructions per step (default: 10)\n");
   printf("  -s  Screen scale factor (default: 20)\n");
+  printf("  -m  Mute audio\n");
 }
 
 int main(int argc, char* argv[])
@@ -28,7 +29,7 @@ int main(int argc, char* argv[])
     abort();
   }
   int c;
-  while ((c = getopt(argc, argv, "i:s:")) != -1)
+  while ((c = getopt(argc, argv, "i:s:m")) != -1)
   {
     switch (c)
     {
@@ -37,6 +38,9 @@ int main(int argc, char* argv[])
         break;
       case 's':
         chip8.scaleFactor = atoi(optarg);
+        break;
+      case 'm':
+        chip8.muted = true;
         break;
       default:
         usage();
