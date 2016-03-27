@@ -14,6 +14,7 @@ class Audio
 
 public:
   Audio();
+  ~Audio();
   void play();
   void stop();
 };

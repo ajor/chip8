@@ -44,6 +44,15 @@ Audio::Audio()
   alSourcei(source, AL_LOOPING, AL_TRUE);
 }
 
+Audio::~Audio()
+{
+  alDeleteSources(1, &source);
+  alDeleteBuffers(1, &buffer);
+  alcMakeContextCurrent(NULL);
+  alcDestroyContext(ctx);
+  alcCloseDevice(dev);
+}
+
 void Audio::play()
 {
   alSourcePlay(source);
