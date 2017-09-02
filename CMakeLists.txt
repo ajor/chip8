@@ -7,6 +7,14 @@ target_compile_options(chip8 PRIVATE "-Wall")
 target_compile_options(chip8 PRIVATE "-pedantic")
 target_compile_options(chip8 PRIVATE "-O3")
 
+if (CMAKE_SYSTEM_NAME MATCHES "Emscripten")
+
+target_link_libraries(chip8 "-s USE_GLFW=3")
+target_link_libraries(chip8 "-s EXPORTED_FUNCTIONS=\"['_main', '_set_instructions_per_step']\"")
+target_compile_options(chip8 PRIVATE "-o chip8.html")
+
+else()
+
 find_package(OpenGL REQUIRED)
 if (OPENGL_FOUND)
   include_directories(${OPENGL_INCLUDE_DIR})
@@ -33,5 +41,4 @@ if (OPENAL_FOUND)
   target_link_libraries(chip8 ${OPENAL_LIBRARY})
 endif()
 
-target_link_libraries(chip8 pthread)
-target_link_libraries(chip8 m)
+endif()

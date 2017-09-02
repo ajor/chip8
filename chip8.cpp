@@ -11,6 +11,10 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 std::uniform_int_distribution<std::mt19937::result_type> rand_byte(0, 0xff);
 GLFWwindow *window;
 GLuint shader_program;
@@ -713,6 +717,46 @@ void Chip8::print_screen()
   }
 }
 
+std::tuple<unsigned int, unsigned int, uint8_t*> Chip8::get_display()
+{
+  unsigned int w, h;
+  uint8_t *disp;
+  if (extendedMode)
+  {
+    w = extWidth;
+    h = extHeight;
+    disp = &extDisplay[0][0];
+  }
+  else
+  {
+    w = width;
+    h = height;
+    disp = &display[0][0];
+  }
+
+  return std::make_tuple(w, h, disp);
+}
+
+void run_frame(void *c8)
+{
+  auto chip8 = static_cast<Chip8 *>(c8);
+  chip8->step();
+
+  auto screen = chip8->get_display();
+  unsigned int w = std::get<0>(screen);
+  unsigned int h = std::get<1>(screen);
+  uint8_t *disp  = std::get<2>(screen);
+
+  glClear(GL_COLOR_BUFFER_BIT);
+#ifdef __EMSCRIPTEN__
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, disp);
+#else
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, disp);
+#endif
+  glUniform1i(glGetUniformLocation(shader_program, "display"), 0);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
 void Chip8::run()
 {
   //
@@ -751,18 +795,14 @@ void Chip8::run()
   // OpenGL settings
   //
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluOrtho2D(0, screenWidth, screenHeight, 0);
 
   //
   // Shaders
   //
   const GLchar *vertex_shader_source =
-    "#version 330 core\n"
-    "layout (location = 0) in vec2 position;"
-    "layout (location = 1) in vec2 texCoord;"
-    "out vec2 TexCoord;"
+    "attribute vec2 position;"
+    "attribute vec2 texCoord;"
+    "varying vec2 TexCoord;"
     "void main()"
     "{"
     "  gl_Position = vec4(position, 0.0, 1.0);"
@@ -770,13 +810,14 @@ void Chip8::run()
     "}";
 
   const GLchar *fragment_shader_source =
-    "#version 330 core\n"
-    "in vec2 TexCoord;"
-    "out vec4 colour;"
+#ifdef __EMSCRIPTEN__
+    "precision mediump float;"
+#endif
+    "varying vec2 TexCoord;"
     "uniform sampler2D display;"
     "void main()"
     "{"
-    "  colour = texture(display, TexCoord);"
+    "  gl_FragColor = texture2D(display, TexCoord);"
     "}";
 
   GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -854,37 +895,21 @@ void Chip8::run()
   GLuint texture;
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  // Uncomment to change display FPS to confirm games still run at correct speed
-  //  glfwSwapInterval(2);
+
+#ifdef __EMSCRIPTEN__
+  emscripten_set_main_loop_arg(run_frame, this, 0, 1);
+#else
   while (!glfwWindowShouldClose(window))
   {
-    step();
-
-    unsigned int w, h;
-    uint8_t *disp;
-    if (extendedMode)
-    {
-      w = extWidth;
-      h = extHeight;
-      disp = &extDisplay[0][0];
-    }
-    else
-    {
-      w = width;
-      h = height;
-      disp = &display[0][0];
-    }
-    glClear(GL_COLOR_BUFFER_BIT);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, disp);
-    glUniform1i(glGetUniformLocation(shader_program, "display"), 0);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    run_frame(this);
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
+#endif
 }
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)

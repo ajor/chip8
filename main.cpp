@@ -3,6 +3,7 @@
 #include "chip8.h"
 
 static char *name;
+static Chip8 chip8;
 
 void usage()
 {
@@ -22,7 +23,6 @@ int main(int argc, char* argv[])
     return 1;
   }
   int c;
-  Chip8 chip8;
   while ((c = getopt(argc, argv, "i:s:m")) != -1)
   {
     switch (c)
@@ -55,3 +55,13 @@ int main(int argc, char* argv[])
 
   return 0;
 }
+
+#ifdef __EMSCRIPTEN__
+extern "C"
+{
+  void set_instructions_per_step(int n)
+  {
+    chip8.instructions_per_step = n;
+  }
+}
+#endif

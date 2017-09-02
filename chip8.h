@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <istream>
 #include <random>
+#include <tuple>
 
 #include "memory.h"
 #include "audio.h"
@@ -29,12 +30,11 @@ class Chip8
   static const unsigned int extHeight = height*2;
   uint8_t display[height][width];
   uint8_t extDisplay[extHeight][extWidth];
-
   bool extendedMode = false;
+
   char *rom_file_name;
   std::mt19937 rng;
 
-  void step();
   void execute(uint16_t instruction);
   void update_timers();
   void print_registers();
@@ -48,6 +48,8 @@ public:
   void loadProgram(char *rom);
   void reset();
   void run();
+  void step();
+  std::tuple<unsigned int, unsigned int, uint8_t*> get_display();
 
   unsigned int instructions_per_step = 10;
   unsigned int scaleFactor = 20;
