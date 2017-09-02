@@ -1,5 +1,7 @@
 # Chip-8 Emulator
 
+Play online at http://ajor.co.uk/chip8
+
 ## Native Build
 
 This code has only been tested on Linux, although it may work on other platforms provided the required dependencies are available.
