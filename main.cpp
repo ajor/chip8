@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
   if (argc < 2)
   {
     usage();
-    abort();
+    return 1;
   }
   int c;
   while ((c = getopt(argc, argv, "i:s:m")) != -1)
@@ -44,13 +44,13 @@ int main(int argc, char* argv[])
         break;
       default:
         usage();
-        abort();
+        return 1;
     }
   }
   if (optind != argc-1)
   {
     usage();
-    abort();
+    return 1;
   }
 
   char *rom = argv[optind];
