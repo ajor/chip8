@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <istream>
 #include <random>
-#include <chrono>
 
 #include "memory.h"
 #include "audio.h"
@@ -47,13 +46,11 @@ public:
     rng.seed(std::random_device()());
   }
   void loadProgram(char *rom);
-  void run();
   void reset();
-  void initDisplay();
+  void run();
 
   unsigned int instructions_per_step = 10;
   unsigned int scaleFactor = 20;
-  bool running = true;
   bool keys[16];
   bool muted = false;
 };

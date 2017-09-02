@@ -1,15 +1,8 @@
 #include <stdio.h>
 #include <unistd.h>
-#include <thread>
 #include "chip8.h"
 
-static Chip8 chip8;
 static char *name;
-
-void run()
-{
-  chip8.run();
-}
 
 void usage()
 {
@@ -29,6 +22,7 @@ int main(int argc, char* argv[])
     return 1;
   }
   int c;
+  Chip8 chip8;
   while ((c = getopt(argc, argv, "i:s:m")) != -1)
   {
     switch (c)
@@ -57,11 +51,7 @@ int main(int argc, char* argv[])
   chip8.loadProgram(rom);
 
   printf("Running at %d instructions per step\n", chip8.instructions_per_step);
-  std::thread exec(run);
-  chip8.initDisplay();
-
-  chip8.running = false;
-  exec.join();
+  chip8.run();
 
   return 0;
 }

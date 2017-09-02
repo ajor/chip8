@@ -4,8 +4,6 @@
 #include <istream>
 #include <fstream>
 #include <random>
-#include <chrono>
-#include <thread>
 #include <vector>
 #include <string.h>
 
@@ -55,13 +53,6 @@ void Chip8::loadProgram(char *rom)
   memory.load(0x150, 10*10, font10.data());
 }
 
-void Chip8::run()
-{
-  while (running) {
-    step();
-  }
-}
-
 void Chip8::reset()
 {
   reg.PC = 0x200;
@@ -73,8 +64,6 @@ void Chip8::reset()
 
 void Chip8::step()
 {
-  std::chrono::duration<int, std::ratio<1, 60>> tick(1);
-  std::this_thread::sleep_for(tick);
   update_timers();
   for (unsigned int i=0; i<instructions_per_step; i++)
   {
@@ -724,7 +713,7 @@ void Chip8::print_screen()
   }
 }
 
-void Chip8::initDisplay()
+void Chip8::run()
 {
   //
   // Set up window
@@ -873,6 +862,8 @@ void Chip8::initDisplay()
   //  glfwSwapInterval(2);
   while (!glfwWindowShouldClose(window))
   {
+    step();
+
     unsigned int w, h;
     uint8_t *disp;
     if (extendedMode)
