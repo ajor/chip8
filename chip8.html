@@ -215,12 +215,12 @@
         }
       }
 
-      function update_speed() {
+      function updateSpeed() {
         var n = document.getElementById("speed").value;
         Module.ccall('set_instructions_per_step', 'void', '[number]', [n]);
       }
 
-      document.getElementById("speed").addEventListener("input", update_speed, false);
+      document.getElementById("speed").addEventListener("input", updateSpeed, false);
       document.getElementById("rom").addEventListener("change", loadROM, false);
     </script>
   </body>
