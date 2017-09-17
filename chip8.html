@@ -203,6 +203,7 @@
                 console.error(err);
               } else {
                 Module.callMain([file_name]);
+                setSpeed();
               }
             });
           }
@@ -215,13 +216,58 @@
         }
       }
 
+      function preloadROM() {
+        var searchParams = new URLSearchParams(window.location.search);
+        var romUrl = searchParams.get("rom");
+        if (romUrl == null)
+          return;
+
+        var req = new XMLHttpRequest();
+        req.open("GET", romUrl);
+        req.responseType = "arraybuffer";
+        req.onload = function() {
+          if (this.status != 200)
+            alert(this.status + " " + this.statusText + ": Error loading ROM from " + romUrl);
+
+          var contents = this.response;
+          console.log(contents);
+          var file_name = "chip8_rom";
+          FS.writeFile(file_name, new Uint8Array(contents), {encoding: "binary"});
+
+          // Make sure any saved games are loaded before running
+          FS.syncfs(true, function(err) {
+            if (err) {
+              console.error(err);
+            } else {
+              Module.callMain([file_name]);
+              setSpeed();
+            }
+          });
+        };
+        req.send();
+
+        document.getElementById("rom").style.display = "none";
+        document.getElementById("controls").style.display = "block";
+      }
+
       function updateSpeed() {
         var n = document.getElementById("speed").value;
         Module.ccall('set_instructions_per_step', 'void', '[number]', [n]);
       }
 
+      function setSpeed() {
+        var searchParams = new URLSearchParams(window.location.search);
+        var speed = searchParams.get("speed");
+        if (speed == null)
+          speed = "10";
+
+        document.getElementById("speed").value = speed;
+        updateSpeed();
+      }
+
       document.getElementById("speed").addEventListener("input", updateSpeed, false);
       document.getElementById("rom").addEventListener("change", loadROM, false);
+      window.addEventListener("load", preloadROM, false);
     </script>
   </body>
 </html>
